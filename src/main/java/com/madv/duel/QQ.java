@@ -4,23 +4,12 @@ import java.io.*;
 
 public class QQ {
     public static void main(String[] args) throws IOException {
-//        Scanner in = new Scanner(System.in);
-//        Formatter formatter = new Formatter();
-//        formatter.format("aaaa");
-//        System.out.print("Введите число ");
-//        int i1 = in.nextInt();
-//        System.out.printf("Введено: %d\n", i1);
-//        sqrt(i1);
-//        Console console = System.console();
-
+        // TODO: 17.06.2021  не мусорить потоками
+        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 
 //        String login = Input.inputString("Входите: \n Входите: ");
 //        System.out.printf("Введено: %s длина %d \n", login, login.length() );
-        int i = Input.inputInteger("Число: ");
+        int i = Input.inputInteger(in, "Число: ");
         System.out.printf("Введено: %d \n", i);
     }
 }
-
-//interface InputField<T>  {
-//    T getField(String pronpt, Scanner in);
-//}

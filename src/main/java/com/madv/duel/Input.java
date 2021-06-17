@@ -8,14 +8,11 @@ import java.util.Scanner;
 import static java.lang.System.exit;
 
 public class Input {
-    public static String inputString(String prompt) {
-        // TODO: 17.06.2021  не мусорить потоками
-        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+    public static String inputString(BufferedReader in, String prompt) {
         String result = null;
         System.out.println(prompt);
         try {
             result = in.readLine();
-            in.close();
         } catch (IOException e) {
             System.out.println("Программа завершилась аварийно.");
             exit(1);
@@ -26,15 +23,15 @@ public class Input {
         return result;
     }
 
-    public static Integer inputInteger(String prompt) {
+    public static Integer inputInteger(BufferedReader in, String prompt) {
         boolean ok = false;
         Integer result = null;
         do {
             try {
-                result = Integer.valueOf(inputString(prompt));
+                result = Integer.valueOf(inputString(in, prompt));
             } catch (NumberFormatException e) {
                 System.out.println("Вы ввели неправильное число. Повторите ввод");
-                result = Integer.valueOf(inputString(prompt));
+                result = Integer.valueOf(inputString(in, prompt));
             }
         } while (ok);
         return result;
