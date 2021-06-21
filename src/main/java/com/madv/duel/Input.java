@@ -2,8 +2,6 @@ package com.madv.duel;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Scanner;
 
 import static java.lang.System.exit;
 

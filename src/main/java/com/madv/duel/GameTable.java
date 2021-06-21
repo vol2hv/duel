@@ -10,6 +10,7 @@ public class GameTable {
     private Desk<Integer> [] desks = new Desk[2];
     private int numGamerCurrentMove;
     private MoveType moveType;
+    // TODO: 21.06.2021 надо переместить в Game?
     private int[]  penaltyPoints = {0, 0}; // штрафные очки игрока
 
     public GameTable() {
@@ -25,6 +26,7 @@ public class GameTable {
             penaltyPoints[i] = 0;
         }
         moveType = MoveType.ATACK;
+        setNumGamerCurrentMove(0);
     }
 
     public void next (int move){

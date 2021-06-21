@@ -2,8 +2,10 @@ package com.madv.duel;
 /**
  *   игрок
  */
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.io.BufferedReader;
 
 @Data
