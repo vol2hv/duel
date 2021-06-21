@@ -12,19 +12,12 @@ import java.io.BufferedReader;
 @Data
 @NoArgsConstructor
 public class StrategyHuman  extends AbstractStrategy{
-    public StrategyHuman(GameTable gameTable, BufferedReader in) {
-        super(gameTable, in);
-    }
-
     @Override
-    public Integer makeAttackingMove(GameTable gameTable) {
-        Desk<Integer> desk = gameTable.getDesks()[gameTable.getNumGamerCurrentMove()];
-        return Input.inputMove(in, MessageCode.MSG_ATTACKING_MOVE.getText(), desk);
+    public Integer makeAttackingMove(Desk<Integer> deskOwn, Desk<Integer> deskForeign) {
+        return Input.inputMove(MessageCode.MSG_ATTACKING_MOVE.getText(), deskOwn);
     }
-
     @Override
-    public Integer makeDefensiveMove(GameTable gameTable) {
-        Desk<Integer> desk = gameTable.getDesks()[gameTable.getNumGamerCurrentMove()];
-        return Input.inputMove(in, MessageCode.MSG_PROTECTIVE_MOVE.getText(), desk);
+    public Integer makeDefensiveMove(Desk<Integer> deskOwn, Desk<Integer> deskForeign) {
+        return Input.inputMove(MessageCode.MSG_PROTECTIVE_MOVE.getText(), deskOwn);
     }
 }

@@ -12,17 +12,21 @@ import java.io.BufferedReader;
 @NoArgsConstructor
 public class Gamer {
     private String name;
-    private GamerType gamerType;
     private AbstractStrategy strategy;
-    private GameTable gameTable;
-    private BufferedReader in;
+    private Desk<Integer> desk = new Desk<>();
+    private int penaltyPoints = 0; // штрафные очки игрока
 
-    public Gamer(String name, GamerType gamerType, AbstractStrategy strategy, GameTable gameTable
-            , BufferedReader in) {
+    public Gamer(String name, AbstractStrategy strategy) {
         this.name = name;
-        this.gamerType = gamerType;
         this.strategy = strategy;
-        this.gameTable = gameTable;
-        this.in = in;
+    }
+
+    public void init() {
+        desk.init();
+        penaltyPoints = 0;
+    }
+
+    public void install(){
+        init();
     }
 }

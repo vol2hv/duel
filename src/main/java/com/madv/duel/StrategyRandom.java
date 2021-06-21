@@ -10,22 +10,22 @@ import java.util.Random;
 
 @Data
 @NoArgsConstructor
-public class StrategyRandom extends AbstractStrategy{
+public class StrategyRandom extends AbstractStrategy {
     private final Random random = new Random(System.currentTimeMillis());
 
-    @Override
-    public Integer makeAttackingMove(GameTable gameTable) {
-        return makeMove (gameTable);
-    }
+        @Override
+        public Integer makeAttackingMove(Desk<Integer> deskOwn, Desk<Integer> deskForeign) {
+        return makeMove (deskOwn);
+        }
 
-    @Override
-    public Integer makeDefensiveMove(GameTable gameTable) {
-        return makeMove (gameTable);
+        @Override
+        public Integer makeDefensiveMove(Desk<Integer> deskOwn, Desk<Integer> deskForeign) {
+            return makeMove (deskOwn);
+        }
+        private Integer makeMove (Desk<Integer> deskOwn) {
+            Object [] m = deskOwn.toArray();
+            int num = random.nextInt(m.length);
+            return  (int) (m[num]);
+        }
+
     }
-    private Integer makeMove (GameTable gameTable) {
-        Desk<Integer> desk = gameTable.getDesks()[gameTable.getNumGamerCurrentMove()];
-        Object [] m = desk.toArray();
-        int num = random.nextInt(m.length);
-        return  (int) (m[num]);
-    }
-}

@@ -2,11 +2,16 @@ package com.madv.duel;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import static java.lang.System.exit;
 
 public class Input {
-    public static String inputString(BufferedReader in, String prompt) {
+    // TODO: 17.06.2021  не мусорить потоками
+    private static BufferedReader reader;
+
+    public static String inputString(String prompt) {
+        BufferedReader in = getIn();
         String result = null;
         System.out.println(prompt);
         try {
@@ -22,16 +27,17 @@ public class Input {
         return result;
     }
 
-    public static Integer inputInteger(BufferedReader in, String promptp, Integer minp, Integer maxp) {
+    public static Integer inputInteger(String promptp, Integer minp, Integer maxp) {
+        BufferedReader in = getIn();
         boolean ok = false;
         Integer result = null;
         String prompt = (promptp == null)?"Введите пустую строку для завершения работы.":promptp;
         Integer min = (minp == null)?Integer.MIN_VALUE:minp;
-        Integer max = (maxp == null)?Integer.MAX_VALUE:maxp;
+        Integer max = (maxp == null)?Game.MAX_CARDS:maxp;
 
         do {
             try {
-                result = Integer.valueOf(inputString(in, prompt));
+                result = Integer.valueOf(inputString(prompt));
                 if ((result >= min) && (result <= max)) {
                     ok = true;
                 } else {
@@ -48,14 +54,14 @@ public class Input {
         return result;
     }
 
-    public static Integer inputMove(BufferedReader in, String promptp, Desk<Integer> desk) {
+    public static Integer inputMove(String promptp, Desk<Integer> desk) {
         boolean ok = false;
         Integer result = null;
         String prompt = (promptp == null)?"Введите пустую строку для завершения работы.":promptp;
 
         do {
             try {
-                result = Integer.valueOf(inputString(in, prompt));
+                result = Integer.valueOf(inputString(prompt));
                 if (desk.contains(result)) {
                     ok = true;
                 } else {
@@ -70,6 +76,14 @@ public class Input {
 
         } while (!ok);
         return result;
+    }
+    BufferedReader in = getIn();
+    public static BufferedReader getIn(){
+        if ( reader == null) {
+            reader = new BufferedReader(new InputStreamReader(System.in));
+        }
+        return reader ;
+
     }
 }
 

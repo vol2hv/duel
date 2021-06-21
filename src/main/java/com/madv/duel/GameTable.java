@@ -1,44 +1,44 @@
 package com.madv.duel;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.EnumMap;
+import java.util.Map;
 
 /**
  * Игровой стол
  */
 @Data
+@NoArgsConstructor
 public class GameTable {
-    private Desk<Integer> [] desks = new Desk[2];
-    private int numGamerCurrentMove;
-    private MoveType moveType;
-    // TODO: 21.06.2021 надо переместить в Game?
-    private int[]  penaltyPoints = {0, 0}; // штрафные очки игрока
-
-    public GameTable() {
-        for (int i = 0; i < 2; i++) {
-            desks[i] = new Desk<>();
-        }
-        init();
-    }
+    private Gamer[] gamers = new Gamer[2];
+    int curGamer = 0;
+    private MoveType curMoveType;
 
     public void init() {
-        for (int i = 0; i < 2; i++) {
-            desks[i].fillDesk(0, Game.MAX_CARDS - 1);
-            penaltyPoints[i] = 0;
-        }
-        moveType = MoveType.ATACK;
-        setNumGamerCurrentMove(0);
+        Gamer human = new Gamer("human", new StrategyHuman());
+        human.init();
+        gamers[0] = human;
+
+        Gamer computer = new Gamer("computer", new StrategyRandom());
+        computer.init();
+        gamers[1] = computer;
     }
 
-    public void next (int move){
-        desks[numGamerCurrentMove].remove(move);
-        numGamerCurrentMove = (numGamerCurrentMove + 1) % 2;
-        switch(moveType){
-            case ATACK:
-                moveType = MoveType.PROTECTION;
-                break;
-            case PROTECTION:
-                moveType = MoveType.ATACK;
-                break;
-          }
+    public void reinstall() {
+        for (int i = 0; i < 2; i++) {
+            gamers[i].install();
+
+        }
+
     }
+
+    // Перейти к следующему полуходу
+    public void nextMove(int move) {
+        gamers[curGamer].getDesk().remove(move);
+        curGamer = (curGamer +1) % 2;
+        curMoveType = (curMoveType.equals(MoveType.ATACK)) ? MoveType.PROTECTION : MoveType.ATACK;
+    }
+
 }

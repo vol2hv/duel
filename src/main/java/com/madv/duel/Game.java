@@ -13,54 +13,70 @@ import java.util.Random;
 @NoArgsConstructor
 public class Game {
     static int MAX_CARDS = 12;   // Количество карт в колоде (0 -11)
-
-    // TODO: 17.06.2021  не мусорить потоками
-    private final BufferedReader in = new BufferedReader(new InputStreamReader(System.in)); // Устройсто ввода
-    private final GameTable gameTable = new GameTable();
-    private final Gamer[] gamers = new Gamer[2]; // 0 - человек 1 - компьютер
-    private AbstractStrategy computerStrategy;
     private final Random random = new Random(System.currentTimeMillis());
+    private final GameTable gameTable = new GameTable();
 
     // Инициализация программы
     public void initProgram() {
-        AbstractStrategy humanStrategy = new StrategyHuman(gameTable, in);
-        String name = Input.inputString(in, MessageCode.MSG_GAMER_NAME.getText());
-        gamers[0] = new Gamer(name, GamerType.HUMAN, humanStrategy, gameTable, in);
-
-        name = "coolThought";
-        // computerStrategy будет выбрано позднее
-        gamers[1] = new Gamer(name, GamerType.COMPUTER, computerStrategy, gameTable, in);
+        gameTable.init();
+        String name = Input.inputString(MessageCode.MSG_GAMER_NAME.getText());
+        Gamer g = gameTable.getGamers()[0];
+        g.setName(name);
+        g.setStrategy(new StrategyHuman());
     }
 
     // провести цикл игр
     public void loopGame() {
         while (true) {
-            setGame();
+            gameTable.reinstall();
+            selectBeginer();
+            // выбрать силу игры конпьютера
+            selectAlgoritm();
             // сыграть очередную игру
             playCurentGame();
             // вопрос о продолжение игры
             // При вводе пустой строки программа завершиться
-            Input.inputString(in, MessageCode.MSG_CONTINUE_GAME.getText());
+            Input.inputString(MessageCode.MSG_CONTINUE_GAME.getText());
         }
     }
 
-    // Подготовка к очердной игре цикла
-    private void setGame() {
-        prepareGameTable();
-        // Выбрать сложность алгоритма ИИ
-        int i = Input.inputInteger(in, MessageCode.MSG_DIFFICULTY_LEVEL.getText(), 1, 2);
-        if (i == 1) {
-            gamers[1].setStrategy(new StrategyRandom());
-        } else {
-            gamers[1].setStrategy(new StrategyRandom()); // TODO: 20.06.2021 заменить
+    //-----------------------------------------
+    // Сыграть текущую игру
+    private void playCurentGame() {
+        while (true) {
+            // сделать спаренный ход
+            makePhase();
+            // если в колоде осталась только одна карта
+            int num = gameTable.getCurGamer();
+            Desk<Integer> desk = gameTable.getGamers()[num].getDesk();
+            if (desk.size() == 1) {
+                Desk<Integer> desk1 = gameTable.getGamers()[((num +1) % 2)].getDesk();
+                endPhase(desk1.getLast(), desk.getLast());
+                break;
+            }
         }
+        // Подвести итоги игры
+        gameOverInformation();
     }
 
-    // Подготовить рабочий стол к очередной игре цикла
-    private void prepareGameTable() {
-        gameTable.init();
+    // Информация о завершении игры
+    private void gameOverInformation() {
+        String[] name = new String[2];
+        int[] pp = {0, 0};
+        Gamer g = gameTable.getGamers()[gameTable.getCurGamer()];
+        for (int i = 0; i < 2; i++) {
+            g = gameTable.getGamers()[i];
+            name[i] = gameTable.getGamers()[i].getName();
+            pp[i] = gameTable.getGamers()[i].getPenaltyPoints();
+        }
+        System.out.printf(MessageCode.MSG_GAME_END_INFORMATION.getText(),
+                name[0], pp[0], name[1], pp[1]);
+    }
+
+    // выбрать начинающего
+    private void selectBeginer() {
         // опредилиться с правом первого хода
-        int i = Input.inputInteger(in, MessageCode.MSG_WHO_BEGIN.getText(), 1, 3);
+        int i = Input.inputInteger(MessageCode.MSG_WHO_BEGIN.getText(), 1, 3);
         int num = 0;
         if (i == 1) {
             num = 0;
@@ -69,38 +85,31 @@ public class Game {
         } else {
             num = random.nextInt(2);
         }
-        gameTable.setNumGamerCurrentMove(num);
+        gameTable.setCurGamer(num);
+        gameTable.setCurMoveType(MoveType.ATACK);
     }
 
-    // Сыграть текущую игру
-    private void playCurentGame() {
-        while (true) {
-            // сделать спаренный ход
-            makePhase();
-            // если в колоде осталась только одна карта
-            if (gameTable.getDesks()[0].size() == 1)
-            {
-                int num = gameTable.getNumGamerCurrentMove();
-                endPhase(gameTable.getDesks()[(++num%2)].getLast(),
-                        gameTable.getDesks()[num].getLast());
-                break;
-            }
+    // Выбрать сложность алготитма
+    private void selectAlgoritm() {
+        // Выбрать сложность алгоритма ИИ
+        int i = Input.inputInteger(MessageCode.MSG_DIFFICULTY_LEVEL.getText(), 1, 2);
+        if (i == 1) {
+            gameTable.getGamers()[1].setStrategy(new StrategyRandom());
+        } else {
+            gameTable.getGamers()[1].setStrategy(new StrategyRandom()); // TODO: 20.06.2021 заменить
         }
-        // Подвести итоги игры
-        gameOverInformation();
     }
+    // ---------------------------------------
 
-    // сделать одиночный ход и подготовить рабочий стол к следующему ходу
-    private int makeMove (){
+    // сделать одиночный полуход и подготовить рабочий стол к следующему ходу
+    private int makeMove() {
         int result, num;
         MoveType tmp;
-        num = gameTable.getNumGamerCurrentMove();
-        result = gamers[num].getStrategy().makeAttackingMove(gameTable);
-        num = (++num)%2;
-        gameTable.setNumGamerCurrentMove(num);
-        tmp = gameTable.getMoveType();
-        tmp = (tmp.equals(MoveType.ATACK)) ? MoveType.PROTECTION : MoveType.ATACK;
-        gameTable.setMoveType(tmp);
+        num = gameTable.getCurGamer();
+        Gamer g = gameTable.getGamers()[num];
+        Desk<Integer> desk = g.getDesk();
+        result = gameTable.getGamers()[num].getStrategy().makeAttackingMove(desk, desk);
+        gameTable.nextMove(result);
         return result;
     }
 
@@ -109,42 +118,30 @@ public class Game {
         int atackMove, protMove;
 
         // сделать ход за атакующего
-        atackMove = makeMove ();
+        atackMove = makeMove();
         // сделать ход за зашитника
-        protMove = makeMove ();
+        protMove = makeMove();
 
         endPhase(atackMove, protMove);
-
-    }
-
-    // Информация о завершении игры
-    private void gameOverInformation() {
-        String[] name = new String[2];
-        int[] pp = {0, 0};
-        for (int i = 0; i <2; i++) {
-            name[i] = gamers[i].getName();
-            pp[i] = gameTable.getPenaltyPoints()[i];
-        }
-        System.out.printf(MessageCode.MSG_GAME_END_INFORMATION.getText(),
-                name[0], pp[0], name[1], pp[1]);
     }
 
     // завершить фазу
     private void endPhase(int atackMove, int protMove) {
         // подвести итоги  фазы игры
         int pp = atackMove - protMove;
-        pp = (pp > 0) ? pp: 0;
-        int num = gameTable.getNumGamerCurrentMove();
-        gameTable.getPenaltyPoints()[(++num)%2] += pp; // TODO: 20.06.2021 проверить
-        //Удаление карт из коллекции
-        gameTable.getDesks()[num].remove(atackMove);
-        gameTable.getDesks()[(++num)%2].remove(protMove
-        );
+        pp = (pp > 0) ? pp : 0;
+        int num = gameTable.getCurGamer();
+        Gamer g = gameTable.getGamers()[(num + 1) % 2];
+        pp += g.getPenaltyPoints();
+        g.setPenaltyPoints(pp);
 
         // Иформация о завершении фазы
-        int num1 = (++num)%2;
-        System.out.printf(MessageCode.MSG_PHASE_END_INFORMATION.getText(), atackMove, protMove, pp,
-                gameTable.getDesks()[num].toString(), gameTable.getDesks()[num1].toString());
+        int num1 = (num + 1) % 2;
+        Desk<Integer> desk = gameTable.getGamers()[num].getDesk();
+        Desk<Integer> desk1 = gameTable.getGamers()[num1].getDesk();
+        System.out.printf(MessageCode.MSG_PHASE_END_INFORMATION.getText(),
+                atackMove, protMove, pp, desk, desk1);
     }
+
 
 }

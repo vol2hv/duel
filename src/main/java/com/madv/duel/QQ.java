@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public class QQ {
     public static void main(String[] args) throws IOException {
-
+        int[] mm = new int[2];
         Child child = new Child(10, 20);
 
         System.out.println(child.a);
