@@ -2,8 +2,6 @@ package com.madv.duel;
 
 import lombok.NoArgsConstructor;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.Random;
 
 /**
@@ -51,7 +49,7 @@ public class Game {
             Desk<Integer> desk = gameTable.getGamers()[num].getDesk();
             if (desk.size() == 1) {
                 Desk<Integer> desk1 = gameTable.getGamers()[((num +1) % 2)].getDesk();
-                endPhase(desk1.getLast(), desk.getLast());
+                endPhase(desk1.getFirst(), desk.getFirst());
                 break;
             }
         }

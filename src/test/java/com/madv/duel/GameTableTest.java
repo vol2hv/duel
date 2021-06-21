@@ -21,4 +21,12 @@ class GameTableTest {
     @Test
     void next() {
     }
+
+    @Test
+    void testInit() {
+    }
+
+    @Test
+    void reinstall() {
+    }
 }

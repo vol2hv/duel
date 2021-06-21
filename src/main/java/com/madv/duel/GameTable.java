@@ -29,9 +29,7 @@ public class GameTable {
     public void reinstall() {
         for (int i = 0; i < 2; i++) {
             gamers[i].install();
-
         }
-
     }
 
     // Перейти к следующему полуходу

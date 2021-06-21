@@ -9,6 +9,7 @@ public class Desk<E> extends TreeSet {
     public void init(){
         fillDesk(0, Game.MAX_CARDS -1);
     };
+
     public void install(){
         this.clear();
         init();
@@ -21,7 +22,7 @@ public class Desk<E> extends TreeSet {
         }
     }
     // получить последний элемент коллекции
-    public E getLast(){
+    public E getFirst(){
         return (E)this.iterator().next();
     }
 
