@@ -1,29 +1,26 @@
 package com.madv.duel;
-
+/**
+ *   игрок
+ */
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.io.BufferedReader;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * Игрок
- */
 @Data
 @NoArgsConstructor
 public class Gamer {
-    private GamerType gamerType;
     private String name;
-    private List<Integer> openCards = new ArrayList<>();
-    private List<Integer> holeCards = new ArrayList<>();
-    public void initialize() {
+    private GamerType gamerType;
+    private AbstractStrategy strategy;
+    private GameTable gameTable;
+    private BufferedReader in;
 
+    public Gamer(String name, GamerType gamerType, AbstractStrategy strategy, GameTable gameTable
+            , BufferedReader in) {
+        this.name = name;
+        this.gamerType = gamerType;
+        this.strategy = strategy;
+        this.gameTable = gameTable;
+        this.in = in;
     }
-    public void makeMove(){
-
-    }
-    public void openCards(){
-
-    }
-
 }

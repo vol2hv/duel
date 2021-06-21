@@ -7,8 +7,9 @@ import java.util.Scanner;
 @Log4j2
 public class Main {
     public static void main(String[] args) {
-        Scanner in = new Scanner(System.in);
-        Game game = new Game(in);
+        Game game = new Game();
+        game.initProgram();
+        game.loopGame();
 //        log.info("Логи фунционируют нормально. {}  {}  {}", "Первый", 1111111.222, false);
     }
 }
