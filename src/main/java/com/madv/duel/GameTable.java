@@ -3,9 +3,6 @@ package com.madv.duel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.EnumMap;
-import java.util.Map;
-
 /**
  * Игровой стол
  */
@@ -36,7 +33,8 @@ public class GameTable {
     public void nextMove(int move) {
         gamers[curGamer].getDesk().remove(move);
         curGamer = (curGamer +1) % 2;
-        curMoveType = (curMoveType.equals(MoveType.ATACK)) ? MoveType.PROTECTION : MoveType.ATACK;
+        curMoveType = (curMoveType.equals(MoveType.ATACK))
+                ? MoveType.PROTECTION : MoveType.ATACK;
     }
 
 }

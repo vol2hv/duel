@@ -130,8 +130,8 @@ public class Game {
         pp = (pp > 0) ? pp : 0;
         int num = gameTable.getCurGamer();
         Gamer g = gameTable.getGamers()[(num + 1) % 2];
-        pp += g.getPenaltyPoints();
-        g.setPenaltyPoints(pp);
+        int pp1 = pp + g.getPenaltyPoints();
+        g.setPenaltyPoints(pp1);
 
         // Иформация о завершении фазы
         int num1 = (num + 1) % 2;
