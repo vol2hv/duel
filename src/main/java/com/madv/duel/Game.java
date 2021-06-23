@@ -1,55 +1,109 @@
 package com.madv.duel;
 
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Random;
+/*
+* Играю
+* Хранит свое состояние
+* (в том числе колоды игроков)
+* и выдает информацию об этом состоянии
+* */
 
-/**
- * Игра
- */
-
+@Data
 @NoArgsConstructor
 public class Game {
-    static int MAX_CARDS = 12;   // Количество карт в колоде (0 -11)
-    private final Random random = new Random(System.currentTimeMillis());
-    private final GameTable gameTable = new GameTable();
+    public static int MAX_CARDS = 12;
+    
+    private SlotMachine slotMachine = null;
 
-    // Инициализация программы
-    public void initProgram() {
-        gameTable.init();
-        String name = Input.inputString(MessageCode.MSG_GAMER_NAME.getText());
-        Gamer g = gameTable.getGamers()[0];
-        g.setName(name);
-        g.setStrategy(new StrategyHuman());
+    private int curNumGamer;    // номер игрока который должен выполнить полуход
+    private MoveType moveType ;  // тип текущего полухода
+    private int semiMove;   // номер полухода в ходе 0, 1
+
+    public Game(SlotMachine slotMachine) {
+        this.slotMachine = slotMachine;
+    }
+
+    public void init() {
+    }
+
+    public void reinstall(){
+
     }
 
     // провести цикл игр
     public void loopGame() {
         while (true) {
-            gameTable.reinstall();
             selectBeginer();
             // выбрать силу игры конпьютера
-            selectAlgoritm();
+//            selectAlgoritm();
             // сыграть очередную игру
             playCurentGame();
             // вопрос о продолжение игры
             // При вводе пустой строки программа завершиться
-            Input.inputString(MessageCode.MSG_CONTINUE_GAME.getText());
+            Util.inputString(MessageCode.MSG_CONTINUE_GAME.getText());
         }
     }
 
-    //-----------------------------------------
+    public void makeMove(){
+        int atackMove, protMove;
+
+        // сделать ход за атакующего
+        semiMove = 0;
+        atackMove = makeSemiMove();
+        // сделать ход за зашитника
+        semiMove = 0;
+        protMove = makeSemiMove();
+
+        endPhase(atackMove, protMove);
+    }
+
+    // сделать полу-ход
+    private int makeSemiMove() {
+        int move;
+        int num = ( curNumGamer + 1)%2;
+        Gamer g = slotMachine.getGamers()[curNumGamer];
+        Desk desk = g.getDesk();
+        Desk desk1 = slotMachine.getGamers()[num].getDesk();
+        if ((curNumGamer == 0) || (desk.size() == 1)){
+            move = desk.getNext();
+        } else {
+            move = g.getStrategy().makeAttackingMove(desk, desk1);   
+        }
+       
+        g.getDesk().remove(move);
+        curNumGamer = num;
+        if ( semiMove != 1) {   // последний полуход хода
+            moveType = (moveType.equals(MoveType.ATACK)) ? MoveType.PROTECTION : MoveType.ATACK;
+        }
+        return move;
+    }
+
+   // сделать ход
+
+
+    private void endPhase(int atackMove, int protMove) {
+        // подвести итоги  фазы игры
+        int pp = atackMove - protMove;
+        pp = (pp > 0) ? pp : 0;
+        Gamer g = slotMachine.getGamers()[(curNumGamer + 1) % 2];
+        g.setPenaltyPoint(pp + g.getPenaltyPoint());
+
+        // Иформация о завершении фазы
+        Desk desk = g.getDesk();
+        Desk desk1 = slotMachine.getGamers()[curNumGamer].getDesk();;
+        System.out.printf(MessageCode.MSG_PHASE_END_INFORMATION.getText(),
+                atackMove, protMove, pp, desk, desk1);
+    }
+    
     // Сыграть текущую игру
     private void playCurentGame() {
         while (true) {
             // сделать спаренный ход
-            makePhase();
-            // если в колоде осталась только одна карта
-            int num = gameTable.getCurGamer();
-            Desk<Integer> desk = gameTable.getGamers()[num].getDesk();
-            if (desk.size() == 1) {
-                Desk<Integer> desk1 = gameTable.getGamers()[((num +1) % 2)].getDesk();
-                endPhase(desk1.getFirst(), desk.getFirst());
+            makeMove();
+            if (slotMachine.getGamers()[curNumGamer].getDesk().size() ==0){
+                // колода пустая 
                 break;
             }
         }
@@ -57,15 +111,14 @@ public class Game {
         gameOverInformation();
     }
 
-    // Информация о завершении игры
     private void gameOverInformation() {
         String[] name = new String[2];
         int[] pp = {0, 0};
-        Gamer g = gameTable.getGamers()[gameTable.getCurGamer()];
+        Gamer[] gamers = slotMachine.getGamers();
         for (int i = 0; i < 2; i++) {
-            g = gameTable.getGamers()[i];
-            name[i] = gameTable.getGamers()[i].getName();
-            pp[i] = gameTable.getGamers()[i].getPenaltyPoints();
+            Gamer g = gamers[i];
+            name[i] = g.getName();
+            pp[i] = g.getPenaltyPoint();
         }
         System.out.printf(MessageCode.MSG_GAME_END_INFORMATION.getText(),
                 name[0], pp[0], name[1], pp[1]);
@@ -74,71 +127,40 @@ public class Game {
     // выбрать начинающего
     private void selectBeginer() {
         // опредилиться с правом первого хода
-        int i = Input.inputInteger(MessageCode.MSG_WHO_BEGIN.getText(), 1, 3);
+        int i = Util.inputInteger(MessageCode.MSG_WHO_BEGIN.getText(), 1, 3);
         int num = 0;
         if (i == 1) {
             num = 0;
         } else if (i == 2) {
             num = 1;
         } else {
-            num = random.nextInt(2);
+            num = Util.random.nextInt(2);
         }
-        gameTable.setCurGamer(num);
-        gameTable.setCurMoveType(MoveType.ATACK);
+        curNumGamer = num;
+        moveType = MoveType.ATACK;
+        semiMove = 0;
     }
 
-    // Выбрать сложность алготитма
     private void selectAlgoritm() {
         // Выбрать сложность алгоритма ИИ
-        int i = Input.inputInteger(MessageCode.MSG_DIFFICULTY_LEVEL.getText(), 1, 2);
+        int i = Util.inputInteger(MessageCode.MSG_DIFFICULTY_LEVEL.getText(), 1, 3);
+        Gamer g = slotMachine.getGamers()[1];
         if (i == 1) {
-            gameTable.getGamers()[1].setStrategy(new StrategyRandom());
+            g.setStrategy(new StrategyRandom());
         } else {
-            gameTable.getGamers()[1].setStrategy(new StrategyRandom()); // TODO: 20.06.2021 заменить
+            g.setStrategy(new StrategyRandom()); // TODO: 20.06.2021 заменить
         }
     }
-    // ---------------------------------------
 
-    // сделать одиночный полуход и подготовить рабочий стол к следующему ходу
-    private int makeMove() {
-        int result, num;
-        MoveType tmp;
-        num = gameTable.getCurGamer();
-        Gamer g = gameTable.getGamers()[num];
-        Desk<Integer> desk = g.getDesk();
-        result = gameTable.getGamers()[num].getStrategy().makeAttackingMove(desk, desk);
-        gameTable.nextMove(result);
-        return result;
-    }
-
-    // Ваполнить фазу (атака + защита)
-    private void makePhase() {
-        int atackMove, protMove;
-
-        // сделать ход за атакующего
-        atackMove = makeMove();
-        // сделать ход за зашитника
-        protMove = makeMove();
-
-        endPhase(atackMove, protMove);
-    }
-
-    // завершить фазу
-    private void endPhase(int atackMove, int protMove) {
-        // подвести итоги  фазы игры
-        int pp = atackMove - protMove;
-        pp = (pp > 0) ? pp : 0;
-        int num = gameTable.getCurGamer();
-        Gamer g = gameTable.getGamers()[(num + 1) % 2];
-        int pp1 = pp + g.getPenaltyPoints();
-        g.setPenaltyPoints(pp1);
-
-        // Иформация о завершении фазы
-        int num1 = (num + 1) % 2;
-        Desk<Integer> desk = gameTable.getGamers()[num].getDesk();
-        Desk<Integer> desk1 = gameTable.getGamers()[num1].getDesk();
-        System.out.printf(MessageCode.MSG_PHASE_END_INFORMATION.getText(),
-                atackMove, protMove, pp, desk, desk1);
+    // Определить номер игрока начинающего игру
+    private int numBegin(int min, int max) {
+        int num = Util.inputInteger(MessageCode.MSG_WHO_BEGIN.getText(), min, max);
+        if (num <= 2) {
+            num--;
+        } else {
+            num = Util.random.nextInt(2);
+        }
+        return num;
     }
 
 

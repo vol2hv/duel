@@ -11,7 +11,10 @@ public class QQ {
 
         System.out.println(child.a);
         System.out.println(child.b);
-        child.mm[0] += 5;
+        for (int i = 0; i < 11; i++) {
+            System.out.println(Util.random.nextInt(2));
+
+        }
         }
 }
 @NoArgsConstructor

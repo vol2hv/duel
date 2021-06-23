@@ -1,15 +1,14 @@
 package com.madv.duel;
 
-import lombok.NoArgsConstructor;
-
-import java.util.Set;
+import java.util.NavigableSet;
 import java.util.TreeSet;
 
-public class Desk<E> extends TreeSet {
+public class Desk  extends TreeSet<Integer> {
+    private NavigableSet<Integer> desk = new TreeSet<>();
+
     public void init(){
         fillDesk(0, Game.MAX_CARDS -1);
     };
-
     public void install(){
         this.clear();
         init();
@@ -21,10 +20,9 @@ public class Desk<E> extends TreeSet {
             this.add(i);
         }
     }
-    // получить последний элемент коллекции
-    public E getFirst(){
-        return (E)this.iterator().next();
+    // получить следующий элемент коллекции
+    public  int getNext(){
+        return this.iterator().next();
     }
-
 
 }
