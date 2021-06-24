@@ -32,6 +32,7 @@ public enum MessageCode {
             .append("Алготитм стратегии: ")
             .toString()),
     MSG_PHASE_END_INFORMATION(new StringBuffer()
+            .append("Атакует [%s].")
             .append("Карта атакующего [%d] ")
             .append("Карта защитника [%d] штраф [%d] \n ")
             .append("Атакующий: [%s] Защитник: [%s] \n ")

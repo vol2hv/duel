@@ -4,40 +4,62 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /*
-* Играю
-* Хранит свое состояние
-* (в том числе колоды игроков)
-* и выдает информацию об этом состоянии
-* */
+ * Играю
+ * Хранит свое состояние
+ * (в том числе колоды игроков)
+ * и выдает информацию об этом состоянии
+ * */
 
 @Data
 @NoArgsConstructor
 public class Game {
     public static int MAX_CARDS = 12;
-    
-    private SlotMachine slotMachine = null;
+
+    private final Gamer[] gamers = new Gamer[2]; //0-human 1-computer
 
     private int curNumGamer;    // номер игрока который должен выполнить полуход
-    private MoveType moveType ;  // тип текущего полухода
+    private MoveType moveType;  // тип текущего полухода
     private int semiMove;   // номер полухода в ходе 0, 1
 
-    public Game(SlotMachine slotMachine) {
-        this.slotMachine = slotMachine;
-    }
-
     public void init() {
+        Game game = new Game();
+        for (int i = 0; i < 2; i++) {
+            gamers[i] = new Gamer();
+            gamers[i].init();
+            if (i == 0) { //human
+                gamers[i].setName(Util.inputString(MessageCode.MSG_GAMER_NAME.getText()));
+                gamers[i].setStrategy(new StrategyHuman());
+                gamers[i].setGamerType(GamerType.HUMAN);
+            }  else {
+                gamers[i].setName("justGenius");
+                gamers[i].setStrategy(new StrategyRandom());
+                gamers[i].setGamerType(GamerType.COMPUTER);
+            }
+        }
     }
 
-    public void reinstall(){
+    // Инициализация очередного цикла игры
+    protected void initCurrentGame() {
+        // выбрать силу игры конпьютера
+        selectAlgoritm();
 
+        // определьть право первого хода
+        curNumGamer = selectBeginer(1, 4);
+
+        moveType = MoveType.ATACK;
+        semiMove = 0;
+        
+        // сбросить состояние игроков в начальное
+        for (Gamer g : gamers) {
+            g.reinstall();
+        }
+        gamers[0].setStrategy(new StrategyHuman());
     }
 
     // провести цикл игр
-    public void loopGame() {
+    public void playGame() {
         while (true) {
-            selectBeginer();
-            // выбрать силу игры конпьютера
-//            selectAlgoritm();
+            initCurrentGame();
             // сыграть очередную игру
             playCurentGame();
             // вопрос о продолжение игры
@@ -46,64 +68,59 @@ public class Game {
         }
     }
 
-    public void makeMove(){
-        int atackMove, protMove;
-
-        // сделать ход за атакующего
-        semiMove = 0;
-        atackMove = makeSemiMove();
-        // сделать ход за зашитника
-        semiMove = 0;
-        protMove = makeSemiMove();
-
-        endPhase(atackMove, protMove);
+    // сделать ход
+    public void makeMove() {
+        endPhase(makeSemiMove(), makeSemiMove());
     }
 
     // сделать полу-ход
     private int makeSemiMove() {
         int move;
-        int num = ( curNumGamer + 1)%2;
-        Gamer g = slotMachine.getGamers()[curNumGamer];
+        int num = (curNumGamer + 1) % 2;
+        Gamer g = gamers[curNumGamer];
         Desk desk = g.getDesk();
-        Desk desk1 = slotMachine.getGamers()[num].getDesk();
-        if ((curNumGamer == 0) || (desk.size() == 1)){
-            move = desk.getNext();
+        Desk desk1 = gamers[num].getDesk();
+        if ((desk.size() == 1) &&(curNumGamer == 0)) {
+            // последний ход за человека делает компьютер
+            move = desk.getMin();
         } else {
-            move = g.getStrategy().makeAttackingMove(desk, desk1);   
+            if (moveType == MoveType.ATACK) {
+                move = g.getStrategy().makeAttackingMove(desk, desk1);
+            } else {
+                move = g.getStrategy().makeDefensiveMove(desk, desk1);
+            }
         }
-       
+
         g.getDesk().remove(move);
-        curNumGamer = num;
-        if ( semiMove != 1) {   // последний полуход хода
-            moveType = (moveType.equals(MoveType.ATACK)) ? MoveType.PROTECTION : MoveType.ATACK;
+        if (semiMove != 1) {   // последний полуход хода
+            curNumGamer = (curNumGamer + 1) % 2;
         }
+        moveType = (moveType.equals(MoveType.ATACK)) ? MoveType.PROTECTION : MoveType.ATACK;
+        semiMove = (semiMove + 1) % 2;
         return move;
     }
-
-   // сделать ход
-
 
     private void endPhase(int atackMove, int protMove) {
         // подвести итоги  фазы игры
         int pp = atackMove - protMove;
         pp = (pp > 0) ? pp : 0;
-        Gamer g = slotMachine.getGamers()[(curNumGamer + 1) % 2];
-        g.setPenaltyPoint(pp + g.getPenaltyPoint());
+
+        Gamer pGamer = gamers[curNumGamer];
+        Gamer aGamer = gamers[(curNumGamer + 1) % 2];
 
         // Иформация о завершении фазы
-        Desk desk = g.getDesk();
-        Desk desk1 = slotMachine.getGamers()[curNumGamer].getDesk();;
+        pGamer.setPenaltyPoint(pp + pGamer.getPenaltyPoint());
         System.out.printf(MessageCode.MSG_PHASE_END_INFORMATION.getText(),
-                atackMove, protMove, pp, desk, desk1);
+               aGamer.getName(), atackMove, protMove, pp, aGamer.getDesk(), pGamer.getDesk());
     }
-    
+
     // Сыграть текущую игру
     private void playCurentGame() {
         while (true) {
             // сделать спаренный ход
             makeMove();
-            if (slotMachine.getGamers()[curNumGamer].getDesk().size() ==0){
-                // колода пустая 
+            if (gamers[curNumGamer].getDesk().size() == 0) {
+                // колода пустая
                 break;
             }
         }
@@ -114,7 +131,6 @@ public class Game {
     private void gameOverInformation() {
         String[] name = new String[2];
         int[] pp = {0, 0};
-        Gamer[] gamers = slotMachine.getGamers();
         for (int i = 0; i < 2; i++) {
             Gamer g = gamers[i];
             name[i] = g.getName();
@@ -124,36 +140,19 @@ public class Game {
                 name[0], pp[0], name[1], pp[1]);
     }
 
-    // выбрать начинающего
-    private void selectBeginer() {
-        // опредилиться с правом первого хода
-        int i = Util.inputInteger(MessageCode.MSG_WHO_BEGIN.getText(), 1, 3);
-        int num = 0;
-        if (i == 1) {
-            num = 0;
-        } else if (i == 2) {
-            num = 1;
-        } else {
-            num = Util.random.nextInt(2);
-        }
-        curNumGamer = num;
-        moveType = MoveType.ATACK;
-        semiMove = 0;
-    }
-
     private void selectAlgoritm() {
         // Выбрать сложность алгоритма ИИ
         int i = Util.inputInteger(MessageCode.MSG_DIFFICULTY_LEVEL.getText(), 1, 3);
-        Gamer g = slotMachine.getGamers()[1];
+        Gamer g = gamers[1];
         if (i == 1) {
             g.setStrategy(new StrategyRandom());
         } else {
-            g.setStrategy(new StrategyRandom()); // TODO: 20.06.2021 заменить
+            g.setStrategy(new StrategyBest());
         }
     }
 
     // Определить номер игрока начинающего игру
-    private int numBegin(int min, int max) {
+    private int selectBeginer(int min, int max) {
         int num = Util.inputInteger(MessageCode.MSG_WHO_BEGIN.getText(), min, max);
         if (num <= 2) {
             num--;
@@ -162,6 +161,5 @@ public class Game {
         }
         return num;
     }
-
-
 }
+

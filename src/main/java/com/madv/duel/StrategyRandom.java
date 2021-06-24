@@ -13,17 +13,14 @@ public class StrategyRandom extends AbstractStrategy {
 
     @Override
     public Integer makeAttackingMove(Desk deskOwn, Desk deskForeign) {
-        return makeMove (deskOwn);
+        return deskOwn.getRandomCard(deskOwn.size());
     }
 
     @Override
     public Integer makeDefensiveMove(Desk deskOwn, Desk deskForeign) {
-        return makeMove (deskOwn);
+        return deskOwn.getRandomCard(deskOwn.size());
     }
-    private Integer makeMove (Desk deskOwn) {
-        Object [] m = deskOwn.toArray();
-        int num = Util.random.nextInt(m.length);
-        return  (int) (m[num]);
-    }
+
+
 
 }

@@ -6,9 +6,10 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class Main {
     public static void main(String[] args) {
-        SlotMachine slotMachine = new SlotMachine();
-        slotMachine.init();
-        slotMachine.start();
+        Game game = new Game();
+        game.init();
+        game.playGame();
+
         // программа завершается по вводу пользователем пустой строки в любом из диалогов
     }
 }
